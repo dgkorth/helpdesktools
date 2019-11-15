@@ -1,0 +1,56 @@
+#!/usr/bin/python3
+import os
+import sys
+import subprocess
+import argparse
+import re
+
+#run Linux command and print each line of sandard output and error
+def runcmd(cmd):
+	p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	out, err = p.communicate()
+	out = out.decode()
+	for line in out.split(sep='\n'):
+		print(line)
+
+#create required arguments account and organization, as well as optional argument user
+parser = argparse.ArgumentParser(description="Add user to Slurm Account:")
+parser.add_argument('-a', dest='account', required=True, type=str, help="The name of the account to create (eg dgkorth or dgkorth1 or eecs183f19_class or prisms_project).")
+parser.add_argument('-o', dest='organization', required=True, type=str, help="The name of the organization the account will reside under.")
+parser.add_argument('-u', dest='user', required=False, type=str, help="Comma delineated list of uniqnames of users to add.")
+
+#extract account, organization, and user from arguments, call with args.user, etc
+args = parser.parse_args()
+
+#if users are specified, make sure user list only consists of capital letters, lower case letters, and commas
+if args.user != None:
+	if re.search(r'[^a-zA-Z,]', args.user):
+		print("E: User list must consist of only uniqnames and commas.")
+		exit(1)
+
+#make sure account name only consists of capital letters, lower case latters, numbers, and underscores
+#if account name contains an underscore, 'dept', 'class', or 'project, part of the account name must match either '_dept', '_class', or '_project'
+if re.search(r'[^a-zA-Z0-9_]', args.account):
+	print("E: Account must consist of only letters, numbers, and underscores.")
+	exit(1)
+if re.search(r'_|(?:dept)|(?:class)|(?:project)', args.account) and not re.search(r'(?:_dept)|(?:_class)|(?:_project)', args.account):
+	print("E: Account suffixes may only be '_dept', '_class', or '_project'.")
+	exit(1)
+
+#if organization does not match a string from the list of possible orgs, output error and exit 1
+organizations = ["architecture_urban_planning", "art_design", "business", "dentistry", "education", "engineering", "environment_sustainability", "information", "inst_social_research", "its", "kinesiology", "law_school", "literature_science_arts", "life_sciences_institute", "medicine", "matthei_botanical_gardens", "music_theatre_dance", "nursing", "office_research", "pharmacy", "public_health", "public_policy", "rackham_school", "social_work", "transportation_research_inst", "um_dearborn", "um_flint", "arc_ts"]
+if args.organization not in organizations:
+	print("E: Organization must be one of:")
+	print(organizations)
+	exit(1)
+
+#make slurm account
+runcmd("sudo /usr/arcts/systems/scripts/addSlurmAccount.sh -a " + str.lower(args.account) + " -o " + str.lower(args.organization))
+
+#if users are specified, add users to slurm account, make their scratch directories, then push changes
+if args.user != None:
+	for user in args.user.split(','):
+		runcmd("sudo /usr/arcts/systems/scripts/addSlurmUser.sh -u " + str.lower(user) + " -a " + str.lower(args.account))
+		runcmd("sudo /usr/arcts/systems/scripts/addScratch.sh -u " + str.lower(user) + " -a " + str.lower(args.account))
+		runcmd("sudo /usr/arcts/systems/scripts/ansibleSync.sh")
+
