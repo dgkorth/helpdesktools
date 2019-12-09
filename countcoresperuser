@@ -1,0 +1,15 @@
+#!/bin/bash
+
+account=$1
+
+for user in \
+	$(sacct -a -n --account=agrt --state=running --format=user%-8\
+	| grep -v ^' '\
+	| sort\
+	| uniq)
+	do
+		echo -n "${user}: "
+		sacct -a -n --account=$account --user=$user --state=running --format=jobid%-12,reqcpus%-4\
+		| grep -ve '\.'\
+		| awk '{total += $2}END{print total}'
+done
