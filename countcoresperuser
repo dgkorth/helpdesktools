@@ -3,7 +3,7 @@
 account=$1
 
 for user in \
-	$(sacct -a -n --account=agrt --state=running --format=user%-8\
+	$(sacct -a -n --account=$account --state=running --format=user%-8\
 	| grep -v ^' '\
 	| sort\
 	| uniq)
