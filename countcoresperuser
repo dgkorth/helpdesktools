@@ -1,0 +1,30 @@
+#!/bin/bash
+
+usage="Usage: countcoresperuser -a <slurm account>"
+
+#parse required argument -a
+while getopts ":a:" opt; do
+	case ${opt} in
+		a) account=$OPTARG;;
+		\?) echo "$usage"; exit 1;;
+		:) echo "$usage"; exit 1;;
+	esac
+done
+
+if [ -z "$account" ]; then
+	echo "$usage"
+fi
+
+#get list of users running jobs on $account, then for each user sum the number cores (column 2) in all their running jobs on that account and print the sum
+#it is necessary to parse the jobids in order to exclude jobs spawned inside the original job (any job id with a '.'), which if included would count as redundant cores
+for user in \
+	$(sacct -a -n --account=$account --state=running --format=user%-8\
+	| grep -v ^' '\
+	| sort\
+	| uniq)
+	do
+		echo -n "${user}: "
+		sacct -a -n --account=$account --user=$user --state=running --format=jobid%-12,reqcpus%-4\
+		| grep -ve '\.'\
+		| awk '{total += $2}END{print total}'
+done
