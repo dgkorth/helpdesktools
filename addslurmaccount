@@ -52,5 +52,5 @@ if args.user != None:
 	for user in args.user.split(','):
 		runcmd("sudo /usr/arcts/systems/scripts/addSlurmUser.sh -u " + str.lower(user) + " -a " + str.lower(args.account))
 		runcmd("sudo /usr/arcts/systems/scripts/addScratch.sh -u " + str.lower(user) + " -a " + str.lower(args.account))
-		runcmd("sudo /usr/arcts/systems/scripts/ansibleSync.sh")
+	runcmd("sudo /usr/arcts/systems/scripts/ansibleSync.sh")
 
