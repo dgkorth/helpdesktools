@@ -7,11 +7,11 @@ import re
 
 #run Linux command and print each line of sandard output and error
 def runcmd(cmd):
-        p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        out, err = p.communicate()
-        out = out.decode()
-        for line in out.split(sep='\n'):
-                print(line)
+	p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	out, err = p.communicate()
+	out = out.decode()
+	for line in out.split(sep='\n'):
+		print(line)
 
 #create required arguments user and account
 parser = argparse.ArgumentParser(description="Add user to Slurm Account:")
@@ -23,21 +23,21 @@ args = parser.parse_args()
 
 #make sure user list only consists of capital letters, lower case letters, and commas
 if re.search(r'[^a-zA-Z,]', args.user):
-        print("E: User list must consist of only uniqnames and commas.")
-        exit(1)
+	print("E: User list must consist of only uniqnames and commas.")
+	exit(1)
 
 #make sure account name only consists of capital letters, lower case latters, numbers, and underscores
 #if account name contains an underscore, 'dept', 'class', or 'project, part of the account name must match either '_dept', '_class', or '_project'
 if re.search(r'[^a-zA-Z0-9_]', args.account):
-        print("E: Account must consist of only letters, numbers, and underscores.")
-        exit(1)
+	print("E: Account must consist of only letters, numbers, and underscores.")
+	exit(1)
 if re.search(r'_|(?:dept)|(?:class)|(?:project)', args.account) and not re.search(r'(?:_dept)|(?:_class)|(?:_project)', args.account):
-        print("E: Account suffixes may only be '_dept', '_class', or '_project'.")
-        exit(1)
+	print("E: Account suffixes may only be '_dept', '_class', or '_project'.")
+	exit(1)
 
 #add user to slurm account and make scratch dir
 for user in args.user.split(','):
-        runcmd("sudo /usr/arcts/systems/scripts/addSlurmUser.sh -u " + str.lower(user) + " -a " + str.lower(args.account))
-        runcmd("sudo /usr/arcts/systems/scripts/addScratch.sh -u " + str.lower(user) + " -a " + str.lower(args.account))
-	runcmd("sudo /usr/arcts/systems/scripts/ansibleSync.sh")
+	runcmd("sudo /usr/arcts/systems/scripts/addSlurmUser.sh -u " + str.lower(user) + " -a " + str.lower(args.account))
+	runcmd("sudo /usr/arcts/systems/scripts/addScratch.sh -u " + str.lower(user) + " -a " + str.lower(args.account))
+runcmd("sudo /usr/arcts/systems/scripts/ansibleSync.sh")
 
