@@ -1,0 +1,12 @@
+#!/bin/bash
+#print a list of users who belong to the slurm account lsa, don't belong to the slurm account engin, and belong to one other slurm account
+
+for user in $(sacctmgr -p -n show users | cut -d '|' -f 1)
+	do
+	if [ "$(my_accounts $user | grep lsa)" ]\
+	&& [ -z "$(my_accounts $user | grep engin)" ]\
+	&& [ $(my_accounts $user | wc -l) -gt 4 ]
+	then
+		echo $user
+	fi
+done
